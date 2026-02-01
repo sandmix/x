@@ -14,7 +14,6 @@ body {
 
 h2 {
   text-align: center;
-  margin-bottom: 10px;
 }
 
 /* ===== GRID ===== */
@@ -24,12 +23,11 @@ h2 {
   gap: 12px;
 }
 
+/* Mobile + Tablet → 2 columns */
 @media (max-width: 900px) {
-  .columns { grid-template-columns: repeat(2, 1fr); }
-}
-
-@media (max-width: 500px) {
-  .columns { grid-template-columns: 1fr; }
+  .columns {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 /* ===== COLUMN ===== */
@@ -73,7 +71,7 @@ h2 {
 
 /* ===== FEEDBACK ===== */
 .correct { background-color: #b6f5b6; }
-.wrong { background-color: #f7b1b1; }
+.wrong   { background-color: #f7b1b1; }
 
 /* ===== SUBMIT ===== */
 #submitBtn {
@@ -149,6 +147,14 @@ for (let c = 0; c < COLS; c++) {
   let interval = null;
   let finished = false;
 
+  function startTimer() {
+    if (startTime) return;
+    startTime = Date.now();
+    interval = setInterval(() => {
+      timerDiv.innerText = "Time: " + formatTime(Date.now() - startTime);
+    }, 500);
+  }
+
   for (let i = 0; i < EX_PER_COL; i++) {
     const ex = generateExercise();
     allExercises.push(ex);
@@ -166,13 +172,11 @@ for (let c = 0; c < COLS; c++) {
 
     const input = exDiv.querySelector("input");
 
+    /* START TIMER ON MOBILE + DESKTOP */
+    input.addEventListener("focus", startTimer);
+    input.addEventListener("touchstart", startTimer, { passive: true });
     input.addEventListener("input", () => {
-      if (!startTime) {
-        startTime = Date.now();
-        interval = setInterval(() => {
-          timerDiv.innerText = "Time: " + formatTime(Date.now() - startTime);
-        }, 500);
-      }
+      startTimer();
 
       input.className =
         Number(input.value) === ex.r ? "correct" : "wrong";

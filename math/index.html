@@ -7,79 +7,67 @@
 
 <style>
 body {
-  font-family: Arial, sans-serif;
+  font-family: Arial;
   margin: 12px;
   font-size: 22px;
 }
 
-h2 { text-align: center; }
+h2 { text-align:center; }
 
-.columns {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
+.columns{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:12px;
 }
 
-@media (max-width: 900px) {
-  .columns {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+@media(max-width:900px){
+  .columns{
+    grid-template-columns:repeat(2,1fr);
   }
 }
 
-.column {
-  border: 2px solid #ccc;
-  border-radius: 12px;
-  padding: 10px;
-  min-width: 0;
+.column{
+  border:2px solid #ccc;
+  border-radius:12px;
+  padding:10px;
 }
 
-.column h3 {
-  text-align: center;
-  margin: 6px 0;
+.timer{
+  text-align:center;
+  font-weight:bold;
+  margin-bottom:10px;
 }
 
-.timer {
-  text-align: center;
-  font-weight: bold;
-  margin-bottom: 8px;
+.exercise{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  margin:6px 0;
 }
 
-.exercise {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 6px 0;
+.exercise span{
+  width:32px;
+  text-align:center;
 }
 
-.exercise span {
-  width: 26px;
-  text-align: center;
+.exercise input{
+  width:70px;
+  font-size:22px;
+  text-align:center;
+  margin-left:6px;
 }
 
-.exercise input {
-  width: 64px;
-  font-size: 22px;
-  text-align: center;
-  padding: 6px;
-  margin-left: 6px;
-}
+.correct{ background:#b6f5b6; }
+.wrong{ background:#f7b1b1; }
 
-.correct { background: #b6f5b6; }
-.wrong { background: #f7b1b1; }
-.locked { background:#ddd; }
-
-#submitBtn {
-  display: none;
-  margin-top: 20px;
-  width: 100%;
-  font-size: 22px;
-  padding: 14px;
-  background: #4CAF50;
-  color: white;
-  border: none;
-  border-radius: 12px;
-  position: sticky;
-  bottom: 10px;
+#submitBtn{
+  display:none;
+  width:100%;
+  padding:14px;
+  font-size:22px;
+  margin-top:20px;
+  position:sticky;
+  bottom:10px;
 }
 </style>
 </head>
@@ -89,100 +77,137 @@ h2 { text-align: center; }
 <h2>Math Practice</h2>
 
 <div class="columns" id="worksheet"></div>
-
 <button id="submitBtn" onclick="sendEmail()">SUBMIT</button>
 
 <script>
-const COLS = 4;
-const EX_PER_COL = 28;
+const COLS=4;
+const EX_PER_COL=28;
 
-const worksheet = document.getElementById("worksheet");
-const allExercises = [];
+const worksheet=document.getElementById("worksheet");
 
-function formatTime(ms) {
-  const s = Math.floor(ms / 1000);
-  return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+function formatTime(ms){
+ const s=Math.floor(ms/1000);
+ return String(Math.floor(s/60)).padStart(2,'0')+":"+
+        String(s%60).padStart(2,'0');
 }
 
-function generateExercise() {
-  const ops = ["+", "-", "×", "÷"];
-  const op = ops[Math.floor(Math.random() * ops.length)];
-  let a, b, r;
+function generateExercise(){
+ const ops=["+","-","×","÷"];
+ const op=ops[Math.floor(Math.random()*ops.length)];
 
-  if (op === "+" || op === "-") {
-    a = Math.floor(Math.random() * 90) + 10;
-    b = Math.floor(Math.random() * 90) + 1;
-    if (op === "-" && b > a) [a, b] = [b, a];
-    r = op === "+" ? a + b : a - b;
-  } else {
-    b = Math.floor(Math.random() * 5) + 1;
-    a = Math.floor(Math.random() * 10) + 1;
-    if (op === "÷") a *= b;
-    r = op === "×" ? a * b : a / b;
-  }
+ let a,b,r;
 
-  return { a, b, op, r };
+ if(op==="+"||op==="-" ){
+   a=Math.floor(Math.random()*90)+10;
+   b=Math.floor(Math.random()*90)+1;
+   if(op==="-"&&b>a)[a,b]=[b,a];
+   r=(op==="+")?a+b:a-b;
+ }else{
+   b=Math.floor(Math.random()*9)+1;
+   a=Math.floor(Math.random()*9)+1;
+   if(op==="÷") a*=b;
+   r=(op==="×")?a*b:a/b;
+ }
+
+ return{a,b,op,r};
 }
 
-for (let c = 0; c < COLS; c++) {
+for(let c=0;c<COLS;c++){
 
-  const colDiv = document.createElement("div");
-  colDiv.className = "column";
+ const col=document.createElement("div");
+ col.className="column";
 
-  colDiv.innerHTML = `
-    <h3>Column ${c + 1}</h3>
-    <div class="timer">Time: 00:00</div>
-  `;
+ col.innerHTML=
+ "<h3>Column "+(c+1)+"</h3>"+
+ "<div class='timer'>Time: 00:00</div>";
 
-  const timerDiv = colDiv.querySelector(".timer");
+ const timerDiv=col.querySelector(".timer");
 
-  let startTime = null;
-  let interval = null;
-  let finished = false;
+ let startTime=null;
+ let interval=null;
+ let finished=false;
 
-  function startTimerIfNeeded() {
-    if (startTime !== null) return;
-    startTime = Date.now();
-    interval = setInterval(() => {
-      timerDiv.textContent =
-        "Time: " + formatTime(Date.now() - startTime);
-    }, 500);
-  }
+ function startTimer(){
+   if(startTime) return;
+   startTime=Date.now();
+   interval=setInterval(()=>{
+     timerDiv.textContent="Time: "+
+       formatTime(Date.now()-startTime);
+   },500);
+ }
 
-  for (let i = 0; i < EX_PER_COL; i++) {
+ for(let i=0;i<EX_PER_COL;i++){
 
-    const ex = generateExercise();
-    allExercises.push(ex);
+   const ex=generateExercise();
+   let attempts=0;
 
-    const exDiv = document.createElement("div");
-    exDiv.className = "exercise";
-    exDiv.innerHTML = `
-      <span>${ex.a}</span>
-      <span>${ex.op}</span>
-      <span>${ex.b}</span>
-      <span>=</span>
-      <input type="number">
-    `;
-    colDiv.appendChild(exDiv);
+   const row=document.createElement("div");
+   row.className="exercise";
 
-    const input = exDiv.querySelector("input");
+   row.innerHTML=
+   "<span>"+ex.a+"</span>"+
+   "<span>"+ex.op+"</span>"+
+   "<span>"+ex.b+"</span>"+
+   "<span>=</span>"+
+   "<input type='number'>";
 
-    let attempts = 0;
+   const input=row.querySelector("input");
 
-    input.addEventListener("input", () => {
+   input.addEventListener("input",()=>{
+     startTimer();
 
-      if (input.value === "") return;
+     if(input.disabled) return;
 
-      startTimerIfNeeded();
+     const val=Number(input.value);
 
-      attempts++;
+     if(val===ex.r){
+       input.className="correct";
+       input.disabled=true;
+     }else{
+       attempts++;
+       input.className="wrong";
+       if(attempts>=3){
+         input.disabled=true;
+       }
+     }
 
-      if (Number(input.value) === ex.r) {
-        input.className = "correct";
-      } else {
-        input.className = "wrong";
+     const correctCount=
+       col.querySelectorAll(".correct").length;
 
-        if (attempts >= 3) {
-          input.disabled = true;
-          input.classList.add("locked");
-        }
+     if(correctCount===EX_PER_COL && !finished){
+       finished=true;
+       clearInterval(interval);
+       timerDiv.textContent=
+        "Finished: "+
+        formatTime(Date.now()-startTime);
+
+       if(c===0){
+         document.getElementById("submitBtn").style.display="block";
+       }
+     }
+   });
+
+   col.appendChild(row);
+ }
+
+ worksheet.appendChild(col);
+}
+
+function sendEmail(){
+
+ let body="Math Results\n\n";
+
+ document.querySelectorAll(".exercise")
+ .forEach(e=>{
+   body+=e.textContent.trim()+"\n";
+ });
+
+ window.location.href=
+ "mailto:x@yahoo.com"+
+ "?subject=Math Practice Results"+
+ "&body="+encodeURIComponent(body);
+}
+</script>
+
+</body>
+</html>

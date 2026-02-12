@@ -6,68 +6,75 @@
 <title>Math Practice</title>
 
 <style>
-body {
-  font-family: Arial;
-  margin: 12px;
-  font-size: 22px;
+body{
+ font-family:Arial;
+ margin:12px;
+ font-size:22px;
 }
 
-h2 { text-align:center; }
+h2{text-align:center;}
 
 .columns{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:12px;
+ display:grid;
+ grid-template-columns:repeat(4,1fr);
+ gap:12px;
 }
 
 @media(max-width:900px){
-  .columns{
-    grid-template-columns:repeat(2,1fr);
-  }
+ .columns{
+  grid-template-columns:repeat(2,1fr);
+ }
 }
 
 .column{
-  border:2px solid #ccc;
-  border-radius:12px;
-  padding:10px;
+ border:2px solid #ccc;
+ border-radius:12px;
+ padding:10px;
 }
 
 .timer{
-  text-align:center;
-  font-weight:bold;
-  margin-bottom:10px;
+ text-align:center;
+ font-weight:bold;
+ margin-bottom:10px;
 }
 
 .exercise{
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  margin:6px 0;
+ display:flex;
+ justify-content:center;
+ align-items:center;
+ margin:6px 0;
 }
 
 .exercise span{
-  width:32px;
-  text-align:center;
+ width:32px;
+ text-align:center;
 }
 
 .exercise input{
-  width:70px;
-  font-size:22px;
-  text-align:center;
-  margin-left:6px;
+ width:70px;
+ font-size:22px;
+ text-align:center;
+ margin-left:6px;
 }
 
-.correct{ background:#b6f5b6; }
-.wrong{ background:#f7b1b1; }
+.correct{background:#b6f5b6;}
+.wrong{background:#f7b1b1;}
 
 #submitBtn{
-  display:none;
-  width:100%;
-  padding:14px;
-  font-size:22px;
-  margin-top:20px;
-  position:sticky;
-  bottom:10px;
+ display:none;
+ width:100%;
+ padding:14px;
+ font-size:22px;
+ margin-top:20px;
+ position:sticky;
+ bottom:10px;
+}
+
+#codeBox{
+ margin-top:20px;
+ text-align:center;
+ font-size:28px;
+ font-weight:bold;
 }
 </style>
 </head>
@@ -77,12 +84,12 @@ h2 { text-align:center; }
 <h2>Math Practice</h2>
 
 <div class="columns" id="worksheet"></div>
-<button id="submitBtn" onclick="sendEmail()">SUBMIT</button>
+<button id="submitBtn" onclick="generateCode()">SUBMIT</button>
+<div id="codeBox"></div>
 
 <script>
 const COLS=4;
 const EX_PER_COL=28;
-
 const worksheet=document.getElementById("worksheet");
 
 function formatTime(ms){
@@ -94,21 +101,19 @@ function formatTime(ms){
 function generateExercise(){
  const ops=["+","-","×","÷"];
  const op=ops[Math.floor(Math.random()*ops.length)];
-
  let a,b,r;
 
  if(op==="+"||op==="-" ){
-   a=Math.floor(Math.random()*90)+10;
-   b=Math.floor(Math.random()*90)+1;
-   if(op==="-"&&b>a)[a,b]=[b,a];
-   r=(op==="+")?a+b:a-b;
+  a=Math.floor(Math.random()*90)+10;
+  b=Math.floor(Math.random()*90)+1;
+  if(op==="-"&&b>a)[a,b]=[b,a];
+  r=(op==="+")?a+b:a-b;
  }else{
-   b=Math.floor(Math.random()*9)+1;
-   a=Math.floor(Math.random()*9)+1;
-   if(op==="÷") a*=b;
-   r=(op==="×")?a*b:a/b;
+  b=Math.floor(Math.random()*9)+1;
+  a=Math.floor(Math.random()*9)+1;
+  if(op==="÷") a*=b;
+  r=(op==="×")?a*b:a/b;
  }
-
  return{a,b,op,r};
 }
 
@@ -128,87 +133,88 @@ for(let c=0;c<COLS;c++){
  let finished=false;
 
  function startTimer(){
-   if(startTime) return;
-   startTime=Date.now();
-   interval=setInterval(()=>{
-     timerDiv.textContent="Time: "+
-       formatTime(Date.now()-startTime);
-   },500);
+  if(startTime) return;
+  startTime=Date.now();
+  interval=setInterval(()=>{
+   timerDiv.textContent="Time: "+
+   formatTime(Date.now()-startTime);
+  },500);
  }
 
  for(let i=0;i<EX_PER_COL;i++){
 
-   const ex=generateExercise();
-   let attempts=0;
+  const ex=generateExercise();
+  let attempts=0;
 
-   const row=document.createElement("div");
-   row.className="exercise";
+  const row=document.createElement("div");
+  row.className="exercise";
 
-   row.innerHTML=
+  row.innerHTML=
    "<span>"+ex.a+"</span>"+
    "<span>"+ex.op+"</span>"+
    "<span>"+ex.b+"</span>"+
    "<span>=</span>"+
    "<input type='number'>";
 
-   const input=row.querySelector("input");
+  const input=row.querySelector("input");
 
-   input.addEventListener("input",()=>{
-     startTimer();
+  input.addEventListener("input",()=>{
 
-     if(input.disabled) return;
+   startTimer();
 
-     const val=Number(input.value);
+   if(input.disabled)return;
 
-     if(val===ex.r){
-       input.className="correct";
-       input.disabled=true;
-     }else{
-       attempts++;
-       input.className="wrong";
-       if(attempts>=6){
-         input.disabled=true;
-       }
-     }
+   const val=Number(input.value);
 
-     const correctCount=
-       col.querySelectorAll(".correct").length;
+   if(val===ex.r){
+    input.className="correct";
+    input.disabled=true;
+   }else{
+    attempts++;
+    input.className="wrong";
+    if(attempts>=6){
+     input.disabled=true;
+    }
+   }
 
-     if(correctCount===EX_PER_COL && !finished){
-       finished=true;
-       clearInterval(interval);
-       timerDiv.textContent=
-        "Finished: "+
-        formatTime(Date.now()-startTime);
+   const correctCount=
+   col.querySelectorAll(".correct").length;
 
-       if(c===0){
-         document.getElementById("submitBtn").style.display="block";
-       }
-     }
-   });
+   if(correctCount===EX_PER_COL&&!finished){
+    finished=true;
+    clearInterval(interval);
+    timerDiv.textContent=
+    "Finished: "+
+    formatTime(Date.now()-startTime);
 
-   col.appendChild(row);
+    if(c===0){
+     document.getElementById("submitBtn").style.display="block";
+    }
+   }
+  });
+
+  col.appendChild(row);
  }
 
  worksheet.appendChild(col);
 }
 
-function sendEmail(){
+function generateCode(){
 
- let body="Math Results\n\n";
+ const correctExercises=
+ document.querySelectorAll(".correct").length;
 
- document.querySelectorAll(".exercise")
- .forEach(e=>{
-   body+=e.textContent.trim()+"\n";
- });
+ const today=new Date();
+ const day=today.getDate();
+ const month=today.getMonth()+1;
+ const year=today.getFullYear();
 
- window.location.href=
- "mailto:x@yahoo.com"+
- "?subject=Math Practice Results"+
- "&body="+encodeURIComponent(body);
+ const code=((day+month+year)*2)+correctExercises;
+
+ document.getElementById("codeBox").textContent=
+ "RESULT CODE: "+code;
 }
 </script>
 
 </body>
 </html>
-
